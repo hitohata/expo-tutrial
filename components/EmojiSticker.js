@@ -39,6 +39,7 @@ export default function EmojiSticker({ imageSize, stickerSource }) {
 			],
 		};
 	});
+
 	return (
 		<GestureDetector gesture={drag}>
 			<Animated.View style={[containerStyle, { top: -350 }]}>
