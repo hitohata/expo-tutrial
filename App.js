@@ -1,8 +1,9 @@
+import domtoimage from "dom-to-image";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import { StatusBar } from "expo-status-bar";
-import { useState, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { useRef, useState } from "react";
+import { Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { captureRef } from "react-native-view-shot";
 import Button from "./components/Button";
@@ -49,18 +50,36 @@ export default function App() {
 		setIsModalVisible(true);
 	};
 	const onSaveImageAsync = async () => {
-		try {
-			const localUri = await captureRef(imageRef, {
-				height: 440,
-				quantity: 1,
-			});
+		if (Platform.OS !== "web") {
+			try {
+				const localUri = await captureRef(imageRef, {
+					height: 440,
+					quantity: 1,
+				});
 
-			await MediaLibrary.saveToLibraryAsync(localUri);
-			if (localUri) {
-				alert("Saved!");
+				await MediaLibrary.saveToLibraryAsync(localUri);
+				if (localUri) {
+					alert("Saved!");
+				}
+			} catch (error) {
+				console.log(error);
 			}
-		} catch (error) {
-			console.log(error);
+		} else {
+			try {
+				const dataUrl = await domtoimage.toJpeg(imageRef.current, {
+					quality: 0.95,
+					width: 320,
+					height: 440,
+				});
+
+				// biome-ignore:
+				const link = document.createElement("a");
+				link.download = "sticker-smash.jpeg";
+				link.href = dataUrl;
+				link.click();
+			} catch (e) {
+				console.log(e);
+			}
 		}
 	};
 	const onModalClose = () => {
@@ -86,7 +105,7 @@ export default function App() {
 						<IconButton icon="refresh" label="Reset" onPress={onReset} />
 						<CircleButton onPress={onAddSticker} />
 						<IconButton
-							icon="refresh"
+							icon="save-alt"
 							label="Save"
 							onPress={onSaveImageAsync}
 						/>
